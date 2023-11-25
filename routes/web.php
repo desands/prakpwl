@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\BookshelfController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,29 +13,10 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-// Route::middleware('auth')->group(function () {
-//     Route::get('/', function () {
-//         return view('welcome');
-//     })->middleware(['role:admin']);
-// });
 
-Route::get('/', function(){
+Route::get('/', function () {
     return view('welcome');
 });
-Route::middleware('auth')->group(function () {
-    Route::get('/role', function(){
-        return view('role');
-    })->name('role')->middleware(['role:mahasiswa']);
-
-    Route::get('/bookshelf', [BookshelfController::class, 'index'])
-    ->name('bookshelf')->middleware(['role:admin']);
-});
-// Route::middleware('auth')->group(function () {
-//     Route::view('/roles', 'role')->name('role')->middleware(['role:pustakawan']);
-// });
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -47,3 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+Route::middleware('auth')->group(function () {
+    // Route::get('/role', function () {
+    //     return view('welcome');
+    // })->middleware(['role:mahasiswa']);
+    Route::view('/roles', 'role')->name('role')->middleware(['role:pustakawan']);
+});
+require __DIR__.'/auth.php';
