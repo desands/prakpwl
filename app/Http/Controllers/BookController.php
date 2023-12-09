@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Bookshelf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\BooksExport;
+use App\Imports\BooksImport;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use PDF;
 
 use Illuminate\Http\Request;
@@ -51,7 +55,7 @@ class BookController extends Controller
         if($request->save == true) {
             return redirect()->route('book')->with($notification);
         } else {
-        return redirect()->route('book.create')->with($notification);
+            return redirect()->route('book.create')->with($notification);
         }
     }
 
@@ -78,9 +82,9 @@ class BookController extends Controller
         'cover' => 'nullable|image',
         ]);
         if ($request->hasFile('cover')) {
-            // if($book->cover != null){
-
-            // }
+            if($book->cover != null){
+            //Storage::delete('public/cover_buku/'.$request->old_cover);
+            }
 
             $path = $request->file('cover')->storeAs(
             'public/cover_buku',
@@ -99,7 +103,7 @@ class BookController extends Controller
     public function destroy(string $id)
     {
         $book = Book::findOrFail($id);
-
+       //Storage::delete('public/cover_buku/'.$book->cover);
 
         $book->delete();
         $notification = array(
@@ -108,12 +112,35 @@ class BookController extends Controller
         );
         return redirect()->route('book')->with($notification);
     }
-    public function print()
+
+  
+  
+        public function print()
+        {
+            $books = Book::all();
+            $pdf = FacadePdf::loadview('books.print', ['books' => $books]);
+            return $pdf->download('data_buku.pdf');
+        }
+    
+
+    public function export()
     {
-        $books = Book::all();
-        $pdf = PDF::loadview('books.print', ['books' => $books]);
-        return $pdf->download('data_buku.pdf');
+        return Excel::download(new BooksExport, 'books.xlsx');
     }
 
+    public function import(Request $req)
+    {
+        $req->validate([
+            'file' => 'required|max:10000|mimes:xlsx,xls',
+        ]);
+
+        Excel::import(new BooksImport, $req->file('file'));
+
+        $notification = array(
+            'message' => 'Import data berhasil dilakukan',
+            'alert-type' => 'success'
+        );
+        return redirect()->route('book')->with($notification);
+    }
 
 }
